@@ -1,22 +1,61 @@
-import { Observable, of } from 'rxjs';
+import { Observable, of, Observer, BehaviorSubject } from 'rxjs';
 import { IDataSource } from './IDataSource';
 import { IQueryExecutionResult, IQueryExecutionGroupResult, IFilter, ISort, IAggregate, IGroup, IQueryCriteria } from './models';
-import { IDataSourceOptions } from './IDataSourceOptions';
-import { IResolveCommandModelEvent } from './IResolveCommandModelEvent';
+import { finalize } from 'rxjs/operators';
+import { IDataSourceOptions, IResolveCommandModelEvent } from '../public-api';
 
 export class DataSource<TModel> implements IDataSource<TModel> 
 {
+   
     data: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel> = null;
     
-    protected _page: number = 0;
-    protected _pageSize: number = 0;
-    protected _filters: IFilter[] = [];
-    protected _sorts: ISort[] = [];
-    protected _aggregates: IAggregate[] = [];
-    protected _groups: IGroup[] = [];
+    protected _dataSubject: BehaviorSubject<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> = new BehaviorSubject(null);
+    protected _loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
+
+    protected _data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
+    protected _loading$: Observable<boolean>;
+
+    // TODO: Validation error subject
+    // TODO: Message error subject
+
+    protected _criteria: IQueryCriteria = {
+        page: null,
+        pageSize: null,
+        filters: [],
+        aggregates: [],
+        groups: [],
+        sorts: []
+    };
+
+    get data$() {
+        return this._data$;
+    }
+
+    get loading$() {
+        return this._loading$;
+    }
 
     constructor(public options: IDataSourceOptions<TModel>) {
+        this._initCriteria();
+        this._initSubjectObservables();
+    }
 
+    protected _initCriteria() {
+
+        if (!this.options.defaultCriteria) 
+            return;
+
+        const copy: IQueryCriteria = JSON.parse(JSON.stringify(this.options.defaultCriteria));
+        this._criteria.page = copy.page || this._criteria.page;
+        this._criteria.pageSize = copy.pageSize || this._criteria.pageSize;
+        this._criteria.filters = copy.filters || this._criteria.filters;
+        this._criteria.groups = copy.groups || this._criteria.groups;
+        this._criteria.aggregates = copy.aggregates || this._criteria.aggregates;
+    }
+
+    protected _initSubjectObservables() {
+        this._loading$ = this._loadingSubject.asObservable();
+        this._data$ = this._dataSubject.asObservable();
     }
 
     resolveCommandModelByName<T extends any>(event: IResolveCommandModelEvent<TModel>) : Observable<T> {
@@ -40,71 +79,84 @@ export class DataSource<TModel> implements IDataSource<TModel>
     }
 
     query<TQuery extends IQueryCriteria>(query: TQuery) : Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> {
-        return this.options.transport.query.adapter.handle(query);
-    }
-
-    public refresh() {
-        return this.query({
-            sorts: this._sorts,
-            filters: this._filters,
-            groups: this._groups,
-            aggregates: this._aggregates,
-            pageSize: this._pageSize,
-            page: this._page
+        return Observable.create((o: Observer<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>) => {
+            this._loadingSubject.next(true);
+            this.options.transport.query.adapter.handle(query)
+                .pipe(
+                    finalize(() => {
+                        o.complete();
+                        this._loadingSubject.next(false);
+                    })
+                )
+                .subscribe(
+                    result => {
+                        this.data = result;
+                        this._dataSubject.next(this.data);
+                        o.next(result)
+                    },
+                    err => o.error(err)
+                );
         });
     }
 
+    refresh() {
+        return this.query(this._criteria).subscribe(
+            res => {},
+            err => {}  
+        );
+    }
+
     get sorts() {
-        return this._sorts;
+        return this._criteria.sorts;
     }
 
     set sorts(value: ISort[]) {
-        this._sorts = value;
+        this._criteria.sorts = value;
         this.refresh();
     }
 
     get filters() {
-        return this._filters;
+        return this._criteria.filters;
     }
 
     set filters(value: IFilter[]) {
-        this._filters = value;
+        this._criteria.filters = value;
         this.refresh();
     }
 
     get groups() {
-        return this._groups;
+        return this._criteria.groups;
     }
 
     set groups(value: IGroup[]) {
-        this._groups = value;
+        this._criteria.groups = value;
         this.refresh();
     }
 
     get aggregates() {
-        return this._aggregates;
+        return this._criteria.aggregates;
     }
 
     set aggregates(value: IAggregate[]) {
-        this._aggregates = value;
+        this._criteria.aggregates = value;
         this.refresh();
     }
 
     get pageSize() {
-        return this._pageSize;
+        return this._criteria.pageSize;
     }
 
     set pageSize(value: number) {
-        this._pageSize = value;
+        this._criteria.pageSize = value;
         this.refresh();
     }
 
     get page() {
-        return this._page;
+        return this._criteria.page;
     }
 
     set page(value: number) {
-        this._page = value;
+        this._criteria.page = value;
         this.refresh();
     }
 }

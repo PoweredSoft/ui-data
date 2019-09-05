@@ -8,6 +8,9 @@ export interface IDataSource<TModel>
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult>;
     query<TQuery extends IQueryCriteria>(query: TQuery) : Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
 
+    data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
+    loading$: Observable<boolean>;
+
     data: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>;
 
     sorts: ISort[];
