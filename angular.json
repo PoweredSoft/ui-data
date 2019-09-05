@@ -120,6 +120,41 @@
           }
         }
       }
+    },
+    "@poweredsoft/data": {
+      "projectType": "library",
+      "root": "projects/poweredsoft/data",
+      "sourceRoot": "projects/poweredsoft/data/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/poweredsoft/data/tsconfig.lib.json",
+            "project": "projects/poweredsoft/data/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/poweredsoft/data/src/test.ts",
+            "tsConfig": "projects/poweredsoft/data/tsconfig.spec.json",
+            "karmaConfig": "projects/poweredsoft/data/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/poweredsoft/data/tsconfig.lib.json",
+              "projects/poweredsoft/data/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }},
   "defaultProject": "data"
 }

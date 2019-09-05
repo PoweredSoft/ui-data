@@ -17,7 +17,15 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "@poweredsoft/data": [
+        "dist/poweredsoft/data"
+      ],
+      "@poweredsoft/data/*": [
+        "dist/poweredsoft/data/*"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
