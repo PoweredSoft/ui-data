@@ -1,6 +1,6 @@
 {
   "name": "@poweredsoft/data",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "peerDependencies": {
     "rxjs": "^6.5.3"
   }

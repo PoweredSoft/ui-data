@@ -11,4 +11,5 @@ export * from './lib/IDataSourceOptions';
 export * from './lib/IDataSourceQueryAdapterOptions';
 export * from './lib/IQueryAdapter';
 export * from './lib/IResolveCommandModelEvent';
+export * from './lib/IDataSourceCommandAdapterOptions';
 
