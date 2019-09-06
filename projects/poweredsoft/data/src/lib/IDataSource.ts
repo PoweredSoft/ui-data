@@ -6,7 +6,8 @@ export interface IDataSource<TModel>
 {
     resolveCommandModelByName<T extends any>(event: IResolveCommandModelEvent<TModel>) : Observable<T>;
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult>;
-    query<TQuery extends IQueryCriteria>(query: TQuery) : Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
+    query<TQuery extends IQueryCriteria>(query: TQuery);
+    refresh();
 
     data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     loading$: Observable<boolean>;

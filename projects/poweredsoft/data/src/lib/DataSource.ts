@@ -51,6 +51,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
         this._criteria.filters = copy.filters || this._criteria.filters;
         this._criteria.groups = copy.groups || this._criteria.groups;
         this._criteria.aggregates = copy.aggregates || this._criteria.aggregates;
+        this._criteria.sorts = copy.sorts || this._criteria.sorts;
     }
 
     protected _initSubjectObservables() {
@@ -78,10 +79,10 @@ export class DataSource<TModel> implements IDataSource<TModel>
         return this.options.transport.commands[name].adapter.handle(command);
     }
 
-    query<TQuery extends IQueryCriteria>(query: TQuery) : Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> {
+    private _query() : Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> {
         return Observable.create((o: Observer<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>) => {
             this._loadingSubject.next(true);
-            this.options.transport.query.adapter.handle(query)
+            this.options.transport.query.adapter.handle(this._criteria)
                 .pipe(
                     finalize(() => {
                         o.complete();
@@ -99,8 +100,18 @@ export class DataSource<TModel> implements IDataSource<TModel>
         });
     }
 
+    query<TQuery extends IQueryCriteria>(query: TQuery) {
+        this._criteria.page = query.page || this._criteria.page;
+        this._criteria.pageSize = query.pageSize || this._criteria.pageSize;
+        this._criteria.filters = query.filters || this._criteria.filters;
+        this._criteria.groups = query.groups || this._criteria.groups;
+        this._criteria.aggregates = query.aggregates || this._criteria.aggregates;
+        this._criteria.sorts = query.sorts || this._criteria.sorts;
+        return this.refresh();
+    }
+
     refresh() {
-        return this.query(this._criteria).subscribe(
+        return this._query().subscribe(
             res => {},
             err => {}  
         );
