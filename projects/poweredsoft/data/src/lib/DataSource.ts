@@ -91,8 +91,11 @@ export class DataSource<TModel> implements IDataSource<TModel>
     }
 
     resolveCommandModelByName<T extends any>(event: IResolveCommandModelEvent<TModel>) : Observable<T> {
-        if (!this.options.transport.commands.hasOwnProperty(name))
-            return Observable.throw(`command with name ${name} not found`);
+        if (!this.options.transport.commands.hasOwnProperty(event.command))
+            return throwError(<IDataSourceErrorMessage>{
+                type: 'message',
+                message: `command with name ${event.command} not found`
+            });
 
         const commandOptions = this.options.transport.commands[event.command];
         if (commandOptions.resolveCommandModel)
@@ -104,7 +107,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
 
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult> {
         if (!this.options.transport.commands.hasOwnProperty(name))
-            return Observable.throw(`command with name ${name} not found`);
+            return throwError(`command with name ${name} not found`);
 
         return this.options.transport.commands[name].adapter.handle(command).pipe(
             map(t => {
