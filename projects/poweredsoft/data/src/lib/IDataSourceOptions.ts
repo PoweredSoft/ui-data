@@ -8,6 +8,7 @@ export interface IDataSourceOptions<TModel> {
     idField?: string;
     resolveIdField?: (model: TModel) => any;
     defaultCriteria: IQueryCriteria;
+    manageNotificationMessage?: boolean;
 }
 
 export interface IDataSourceTransportOptions<TModel> {
