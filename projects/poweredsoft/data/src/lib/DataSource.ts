@@ -6,7 +6,6 @@ import { IDataSourceOptions, IResolveCommandModelEvent } from '../public-api';
 
 export class DataSource<TModel> implements IDataSource<TModel> 
 {
-   
     data: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel> = null;
     
     protected _dataSubject: BehaviorSubject<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> = new BehaviorSubject(null);
@@ -59,16 +58,29 @@ export class DataSource<TModel> implements IDataSource<TModel>
         this._data$ = this._dataSubject.asObservable();
     }
 
+    resolveIdField<TKeyType extends any>(model: TModel): TKeyType {
+        
+        if (this.options.idField)
+            return model[this.options.idField];
+        
+        if (this.options.resolveIdField)
+            return this.options.resolveIdField(model);
+
+        throw new Error("Must specify an id field or supply a method to resolve the id field.");
+    }
+   
+
     resolveCommandModelByName<T extends any>(event: IResolveCommandModelEvent<TModel>) : Observable<T> {
         
-        if (!this.options.transport.commands.hasOwnProperty(name))
-            return Observable.throw(`command with name ${name} not found`);
+        if (!this.options.transport.commands.hasOwnProperty(event.command))
+            return Observable.throw(`command with name ${event.command} not found`);
 
-        const commandOptions = this.options.transport.commands[name];
+        const commandOptions = this.options.transport.commands[event.command];
         if (commandOptions.resolveCommandModel)
             return commandOptions.resolveCommandModel(event);
 
-        return of<T>(event.model as any as T);
+        const noResolveMethod: any = event.model || {};
+        return of<T>(noResolveMethod as T);
     }
 
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult> {

@@ -5,6 +5,8 @@ import { IQueryCriteria } from "./models";
 
 export interface IDataSourceOptions<TModel> {
     transport: IDataSourceTransportOptions<TModel>;
+    idField?: string;
+    resolveIdField?: (model: TModel) => any;
     defaultCriteria: IQueryCriteria;
 }
 
