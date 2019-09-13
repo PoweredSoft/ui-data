@@ -6,6 +6,7 @@ import { IQueryCriteria } from "./models";
 export interface IDataSourceOptions<TModel> {
     transport: IDataSourceTransportOptions<TModel>;
     defaultCriteria: IQueryCriteria;
+    manageNotificationMessage?: boolean;
 }
 
 export interface IDataSourceTransportOptions<TModel> {

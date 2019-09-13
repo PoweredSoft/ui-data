@@ -1,22 +1,27 @@
-import { Observable, of, Observer, BehaviorSubject } from 'rxjs';
+import { Observable, of, Observer, BehaviorSubject, throwError, Subject } from 'rxjs';
 import { IDataSource } from './IDataSource';
 import { IQueryExecutionResult, IQueryExecutionGroupResult, IFilter, ISort, IAggregate, IGroup, IQueryCriteria } from './models';
-import { finalize } from 'rxjs/operators';
+import { finalize, catchError, map } from 'rxjs/operators';
 import { IDataSourceOptions, IResolveCommandModelEvent } from '../public-api';
+import { IDataSourceErrorMessage } from './IDataSourceErrorMessage';
+import { IDataSourceValidationError } from './IDataSourceValidationError';
+import { IDataSourceError } from './IDataSourceError';
+import { IDataSourceNotifyMessage } from './IDataSourceNotifyMessage';
 
 export class DataSource<TModel> implements IDataSource<TModel> 
 {
-   
     data: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel> = null;
     
     protected _dataSubject: BehaviorSubject<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> = new BehaviorSubject(null);
     protected _loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
+    protected _validationSubject: Subject<IDataSourceValidationError> = new Subject();
+    protected _notifyMessageSubject: Subject<IDataSourceNotifyMessage> = new Subject();
 
     protected _data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     protected _loading$: Observable<boolean>;
-
-    // TODO: Validation error subject
-    // TODO: Message error subject
+    protected _validationError$: Observable<IDataSourceValidationError>;
+    protected _notifyMessage$: Observable<IDataSourceNotifyMessage>;
+    public manageNotificationMessage: boolean;
 
     protected _criteria: IQueryCriteria = {
         page: null,
@@ -28,22 +33,42 @@ export class DataSource<TModel> implements IDataSource<TModel>
     };
 
     get data$() {
+        if (!this._data$)
+            this._data$ = this._dataSubject.asObservable();
+
         return this._data$;
     }
 
     get loading$() {
+        if (!this._loading$)
+            this._loading$ = this._loadingSubject.asObservable();
+
         return this._loading$;
+    }
+
+    get validationError$() {
+        if (!this._validationError$)
+            this._validationError$ = this._validationSubject.asObservable();
+
+        return this._validationError$;
+    }
+
+    get notifyMessage$() {
+        if (!this._notifyMessage$)
+            this._notifyMessage$ = this._notifyMessageSubject.asObservable();
+
+        return this._notifyMessage$;
     }
 
     constructor(public options: IDataSourceOptions<TModel>) {
         this._initCriteria();
-        this._initSubjectObservables();
     }
 
     protected _initCriteria() {
-
         if (!this.options.defaultCriteria) 
             return;
+
+        this.manageNotificationMessage = (null == this.options.manageNotificationMessage || !this.options.manageNotificationMessage) ? false : true;
 
         const copy: IQueryCriteria = JSON.parse(JSON.stringify(this.options.defaultCriteria));
         this._criteria.page = copy.page || this._criteria.page;
@@ -54,13 +79,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
         this._criteria.sorts = copy.sorts || this._criteria.sorts;
     }
 
-    protected _initSubjectObservables() {
-        this._loading$ = this._loadingSubject.asObservable();
-        this._data$ = this._dataSubject.asObservable();
-    }
-
     resolveCommandModelByName<T extends any>(event: IResolveCommandModelEvent<TModel>) : Observable<T> {
-        
         if (!this.options.transport.commands.hasOwnProperty(name))
             return Observable.throw(`command with name ${name} not found`);
 
@@ -72,11 +91,33 @@ export class DataSource<TModel> implements IDataSource<TModel>
     }
 
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult> {
-    
         if (!this.options.transport.commands.hasOwnProperty(name))
             return Observable.throw(`command with name ${name} not found`);
 
-        return this.options.transport.commands[name].adapter.handle(command);
+        return this.options.transport.commands[name].adapter.handle(command).pipe(
+            map(t => {
+                let message = `{command} was executed successfully..`;
+                if (!this.manageNotificationMessage)
+                    message = message.replace('{command}', name);
+
+                this._notifyMessageSubject.next({
+                    type: 'success',
+                    message: message
+                });
+                return t;
+            }),
+            catchError((err: IDataSourceError) => {
+                if (err.type == 'message')
+                    this._notifyMessageSubject.next({
+                        type: 'error',
+                        message: (err as IDataSourceErrorMessage).message
+                    });
+                else if(err.type == 'validation')
+                    this._validationSubject.next(err as IDataSourceValidationError);
+
+                return throwError(err);
+            })
+        );
     }
 
     private _query() : Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> {
@@ -92,10 +133,20 @@ export class DataSource<TModel> implements IDataSource<TModel>
                 .subscribe(
                     result => {
                         this.data = result;
+                        o.next(result);
                         this._dataSubject.next(this.data);
-                        o.next(result)
+                        this._notifyMessageSubject.next({
+                            message: 'New data has been read succesfully..',
+                            type: 'info'
+                        });
                     },
-                    err => o.error(err)
+                    err => {
+                        o.error(err);
+                        this._notifyMessageSubject.next({
+                            message: 'Something unexpected as occured during the query',
+                            type: 'error'
+                        });
+                    }
                 );
         });
     }

@@ -1,6 +1,8 @@
 import { Observable } from "rxjs";
 import { ISort, IFilter, IGroup, IAggregate, IQueryExecutionResult, IQueryExecutionGroupResult, IQueryCriteria } from "./models";
 import { IResolveCommandModelEvent } from "./IResolveCommandModelEvent";
+import { IDataSourceValidationError } from './IDataSourceValidationError';
+import { IDataSourceNotifyMessage } from './IDataSourceNotifyMessage';
 
 export interface IDataSource<TModel>
 {
@@ -11,6 +13,8 @@ export interface IDataSource<TModel>
 
     data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     loading$: Observable<boolean>;
+    validationError$: Observable<IDataSourceValidationError>;
+    notifyMessage$: Observable<IDataSourceNotifyMessage>;
 
     data: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>;
 
