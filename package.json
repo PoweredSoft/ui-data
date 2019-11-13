@@ -1,13 +1,14 @@
 {
   "name": "data",
-  "version": "0.0.0",
+  "version": "0.0.26",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "publish-lib": "npm publish dist/poweredsoft/data"
   },
   "private": true,
   "dependencies": {
