@@ -112,7 +112,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
         return this.options.transport.commands[name].adapter.handle(command).pipe(
             map(t => {
                 let message = `{command} was executed successfully..`;
-                if (!this.manageNotificationMessage)
+                if (this.manageNotificationMessage)
                     message = message.replace('{command}', name);
 
                 this._notifyMessageSubject.next({
