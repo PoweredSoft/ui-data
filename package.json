@@ -8,6 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
+    "build-lib": "ng build @poweredsoft/data",
     "publish-lib": "npm publish dist/poweredsoft/data"
   },
   "private": true,
