@@ -167,8 +167,8 @@ export class DataSource<TModel> implements IDataSource<TModel>
     }
 
     query<TQuery extends IQueryCriteria>(query: TQuery) {
-        this._criteria.page = query.page || this._criteria.page;
-        this._criteria.pageSize = query.pageSize || this._criteria.pageSize;
+        this._criteria.page = query.page === undefined ? this._criteria.page:query.page;
+        this._criteria.pageSize = query.pageSize === undefined ? this._criteria.pageSize: query.pageSize;
         this._criteria.filters = query.filters || this._criteria.filters;
         this._criteria.groups = query.groups || this._criteria.groups;
         this._criteria.aggregates = query.aggregates || this._criteria.aggregates;
@@ -176,7 +176,11 @@ export class DataSource<TModel> implements IDataSource<TModel>
         return this.refresh();
     }
 
-    refresh() {
+    excuteQuery<TQuery extends IQueryCriteria>(query: TQuery): Observable<IQueryExecutionGroupResult<TModel> & IQueryExecutionGroupResult<TModel>>{
+        return this.options.transport.query.adapter.handle(query);
+    }
+
+    refresh() {debugger
         return this._query().subscribe(
             res => {},
             err => {}  

@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
 
     dataSource: IDataSource<any>;
     createCommand: IDataSourceCommandAdapterOptions<MyModel>;
-
+    test:any;
     public constructor(private http: HttpClient) {
 
     }
@@ -112,6 +112,11 @@ export class AppComponent implements OnInit {
                 message: message
             });
         });
+
+        this.test = this.dataSource.query({
+            page:null,
+            pageSize: null,
+        })
     }
 
     handleNotification(notification: IDataSourceNotifyMessage) {
@@ -126,5 +131,7 @@ export class AppComponent implements OnInit {
 
         });
         //this.dataSource.refresh();
+
+        console.log(this.test);
     }
 }
