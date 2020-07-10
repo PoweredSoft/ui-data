@@ -65,3 +65,31 @@ export interface IAggregateResult {
 export interface ICompositeFilter extends IFilter {
     filters: IFilter[];
 }
+
+export enum AggregateType {
+    COUNT = 'Count',
+    SUM = 'Sum',
+    AVG = 'Avg',
+    LONGCOUNT = 'LongCount',
+    MIN = 'Min',
+    MAX = 'Max',
+    FIRST = 'First',
+    FIRSTORDEFAULT = 'FirstOrDefault',
+    LAST = 'Last',
+    LASTORDEFAULT = 'LastOrDefault'
+}
+
+export enum FilterType {
+    EQUAL = 'Equal',
+    CONTAINS = 'Contains',
+    STARTSWITH = 'StartsWith',
+    ENDSWITH = 'EndsWith',
+    COMPOSITE = 'Composite',
+    NOTEQUAL = 'NotEqual',
+    GREATERTHAN = 'GreaterThan',
+    LESSTHANOREQUAL = 'LessThanOrEqual', 
+    GREATERTHANOREQUAL = 'GreaterThanOrEqual',
+    LESSTHAN ='LessThan',
+    IN = 'In',
+    NOTIN = 'NotIn'
+}
