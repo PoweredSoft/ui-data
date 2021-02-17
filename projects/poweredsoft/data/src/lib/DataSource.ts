@@ -21,8 +21,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
     protected _loading$: Observable<boolean>;
     protected _validationError$: Observable<IDataSourceValidationError>;
     protected _notifyMessage$: Observable<IDataSourceNotifyMessage>;
-    public manageNotificationMessage: boolean;
-
+    
     protected _criteria: IQueryCriteria = {
         page: null,
         pageSize: null,
@@ -67,9 +66,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
     protected _initCriteria() {
         if (!this.options.defaultCriteria) 
             return;
-
-        this.manageNotificationMessage = (null == this.options.manageNotificationMessage || !this.options.manageNotificationMessage) ? false : true;
-
+            
         const copy: IQueryCriteria = JSON.parse(JSON.stringify(this.options.defaultCriteria));
         this._criteria.page = copy.page || this._criteria.page;
         this._criteria.pageSize = copy.pageSize || this._criteria.pageSize;
@@ -111,13 +108,12 @@ export class DataSource<TModel> implements IDataSource<TModel>
 
         return this.options.transport.commands[name].adapter.handle(command).pipe(
             map(t => {
-                let message = `{command} was executed successfully..`;
-                if (this.manageNotificationMessage)
-                    message = message.replace('{command}', name);
-
                 this._notifyMessageSubject.next({
                     type: 'success',
-                    message: message
+                    message: 'COMMAND_EXECUTED_SUCCESFULLY',
+                    messageParams: {
+                        command: name
+                    }
                 });
                 return t;
             }),
@@ -151,14 +147,14 @@ export class DataSource<TModel> implements IDataSource<TModel>
                         o.next(result);
                         this._dataSubject.next(this.data);
                         this._notifyMessageSubject.next({
-                            message: 'New data has been read succesfully..',
+                            message: 'NEW_DATA_READ_SUCCESFULLY',
                             type: 'info'
                         });
                     },
                     err => {
                         o.error(err);
                         this._notifyMessageSubject.next({
-                            message: 'Something unexpected as occured during the query',
+                            message: 'UNEXPECTED_ERROR_OCCURED',
                             type: 'error'
                         });
                     }

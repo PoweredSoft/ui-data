@@ -9,6 +9,7 @@ export interface IDataSource<TModel>
     resolveCommandModelByName<T extends any>(event: IResolveCommandModelEvent<TModel>) : Observable<T>;
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult>;
     query<TQuery extends IQueryCriteria>(query: TQuery);
+    excuteQuery<TQuery extends IQueryCriteria>(query: TQuery): Observable<IQueryExecutionGroupResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     refresh();
     resolveIdField<TKeyType extends any>(model: TModel) : TKeyType;
 
