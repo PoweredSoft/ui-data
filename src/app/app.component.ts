@@ -86,7 +86,6 @@ export class AppComponent implements OnInit {
             }
         };
         this.dataSource = new DataSource<MyModel>({
-            manageNotificationMessage: false,
             transport: transportOptions,
             defaultCriteria: {
                 page: 1,
