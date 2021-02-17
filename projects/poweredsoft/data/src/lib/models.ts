@@ -66,7 +66,7 @@ export interface ICompositeFilter extends IFilter {
     filters: IFilter[];
 }
 
-export enum AggregateType {
+export const enum AggregateType {
     COUNT = 'Count',
     SUM = 'Sum',
     AVG = 'Avg',
@@ -79,7 +79,7 @@ export enum AggregateType {
     LASTORDEFAULT = 'LastOrDefault'
 }
 
-export enum FilterType {
+export const enum FilterType {
     EQUAL = 'Equal',
     CONTAINS = 'Contains',
     STARTSWITH = 'StartsWith',
