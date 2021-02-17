@@ -66,7 +66,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
     protected _initCriteria() {
         if (!this.options.defaultCriteria) 
             return;
-            
+
         const copy: IQueryCriteria = JSON.parse(JSON.stringify(this.options.defaultCriteria));
         this._criteria.page = copy.page || this._criteria.page;
         this._criteria.pageSize = copy.pageSize || this._criteria.pageSize;
@@ -176,7 +176,7 @@ export class DataSource<TModel> implements IDataSource<TModel>
         return this.options.transport.query.adapter.handle(query);
     }
 
-    refresh() {debugger
+    refresh() {
         return this._query().subscribe(
             res => {},
             err => {}  
