@@ -63,6 +63,38 @@ export class DataSource<TModel> implements IDataSource<TModel>
         this._initCriteria();
     }
 
+    clear() {
+        this.data = null;
+        this._dataSubject.next(null);
+    }
+
+    updateData(value: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>) {
+        this.data = value;
+        this._dataSubject.next(this.data);
+    }
+
+    replaceDataWithArray(items: TModel[]) {
+        this.data = {
+            totalRecords: items.length,
+            numberOfPages: null,
+            groups: null,
+            aggregates: null,
+            data: items
+        };
+        this._dataSubject.next(this.data);
+    }
+
+    replaceDataWithSingle(item: TModel) {
+        this.data = {
+            totalRecords: 1,
+            numberOfPages: null,
+            groups: null,
+            aggregates: null,
+            data: [item]
+        };
+        this._dataSubject.next(this.data);
+    }
+
     protected _initCriteria() {
         if (!this.options.defaultCriteria) 
             return;

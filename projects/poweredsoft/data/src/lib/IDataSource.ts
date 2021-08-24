@@ -12,6 +12,10 @@ export interface IDataSource<TModel>
     excuteQuery<TQuery extends IQueryCriteria>(query: TQuery): Observable<IQueryExecutionGroupResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     refresh();
     resolveIdField<TKeyType extends any>(model: TModel) : TKeyType;
+    clear();
+    updateData(value: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>);
+    replaceDataWithArray(items: TModel[]);
+    replaceDataWithSingle(item: TModel);
 
     data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     loading$: Observable<boolean>;
