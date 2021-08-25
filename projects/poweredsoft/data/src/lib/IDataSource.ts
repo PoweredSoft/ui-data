@@ -3,6 +3,7 @@ import { ISort, IFilter, IGroup, IAggregate, IQueryExecutionResult, IQueryExecut
 import { IResolveCommandModelEvent } from "./IResolveCommandModelEvent";
 import { IDataSourceValidationError } from './IDataSourceValidationError';
 import { IDataSourceNotifyMessage } from './IDataSourceNotifyMessage';
+import { IDataSourceCommandStarted } from "./IDataSourceCommandStarted";
 
 export interface IDataSource<TModel>
 {
@@ -21,6 +22,7 @@ export interface IDataSource<TModel>
     loading$: Observable<boolean>;
     validationError$: Observable<IDataSourceValidationError>;
     notifyMessage$: Observable<IDataSourceNotifyMessage>;
+    commandStarted$: Observable<IDataSourceCommandStarted>;
 
     data: IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>;
 
