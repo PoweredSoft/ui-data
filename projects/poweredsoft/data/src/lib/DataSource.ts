@@ -7,6 +7,7 @@ import { IDataSourceErrorMessage } from './IDataSourceErrorMessage';
 import { IDataSourceValidationError } from './IDataSourceValidationError';
 import { IDataSourceError } from './IDataSourceError';
 import { IDataSourceNotifyMessage } from './IDataSourceNotifyMessage';
+import { IDataSourceCommandStarted } from './IDataSourceCommandStarted';
 
 export class DataSource<TModel> implements IDataSource<TModel> 
 {
@@ -15,12 +16,14 @@ export class DataSource<TModel> implements IDataSource<TModel>
     protected _dataSubject: BehaviorSubject<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>> = new BehaviorSubject(null);
     protected _loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
     protected _validationSubject: Subject<IDataSourceValidationError> = new Subject();
+    protected _commandStartedSubject: Subject<IDataSourceCommandStarted> = new Subject();
     protected _notifyMessageSubject: Subject<IDataSourceNotifyMessage> = new Subject();
 
     protected _data$: Observable<IQueryExecutionResult<TModel> & IQueryExecutionGroupResult<TModel>>;
     protected _loading$: Observable<boolean>;
     protected _validationError$: Observable<IDataSourceValidationError>;
     protected _notifyMessage$: Observable<IDataSourceNotifyMessage>;
+    protected _commandStarted$: Observable<IDataSourceCommandStarted>;
     
     protected _criteria: IQueryCriteria = {
         page: null,
@@ -50,6 +53,14 @@ export class DataSource<TModel> implements IDataSource<TModel>
             this._validationError$ = this._validationSubject.asObservable();
 
         return this._validationError$;
+    }
+
+
+    get commandStarted$() {
+        if (!this._commandStarted$)
+            this._commandStarted$ = this._commandStartedSubject.asObservable();
+
+        return this._commandStarted$;
     }
 
     get notifyMessage$() {
@@ -137,6 +148,10 @@ export class DataSource<TModel> implements IDataSource<TModel>
     executeCommandByName<TCommand, TResult>(name: string, command: TCommand) : Observable<TResult> {
         if (!this.options.transport.commands.hasOwnProperty(name))
             return throwError(`command with name ${name} not found`);
+
+        this._commandStartedSubject.next({
+            name: name, command: command
+        });
 
         return this.options.transport.commands[name].adapter.handle(command).pipe(
             map(t => {
